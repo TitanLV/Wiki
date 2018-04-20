@@ -1,0 +1,121 @@
+This is My noob(like me) version how to install OCSNG_2.4.1 on Linux Ubuntu 16.04.4
+
+Most of this comes from http://ask.ocsinventory-ng.org/8583/tutorial-ocs-2-4-on-ubuntu-16-04
+I just changed/added something and its working for me.
+
+!Start of instruction!
+#install ubuntu-16.04.4-server-amd64 with LAMP+SSH
+#log in locally on server or with PuTTY and start preparing for OCS install
+sudo -s
+sudo apt update
+sudo apt dist-upgrade
+
+sudo apt install php-curl
+sudo apt install apache2-dev
+sudo apt install gcc
+sudo apt install perl-modules-5.22
+sudo apt install make
+sudo apt install perl
+sudo apt install libapache2-mod-perl2
+sudo apt install libapache2-mod-php
+sudo apt install libio-compress-perl
+sudo apt install libxml-simple-perl
+sudo apt install libdbi-perl
+sudo apt install libdbd-mysql-perl
+sudo apt install libapache-dbi-perl
+sudo apt install libsoap-lite-perl
+sudo apt install libnet-ip-perl
+sudo apt install php-mysql
+sudo apt install php-gd
+sudo apt install php7.0-dev
+sudo apt install php-mbstring
+sudo apt install php-soap
+sudo apt install php-xml
+sudo apt install php-pclzip
+sudo apt install libarchive-zip-perl
+sudo apt install php7.0-zip
+sudo apt install libswitch-perl
+sudo apt install libplack-perl
+
+sudo perl -MCPAN -e 'install Apache2::SOAP'
+sudo perl -MCPAN -e 'install XML::Entities'
+sudo perl -MCPAN -e 'install Net::IP'
+sudo perl -MCPAN -e 'install Apache::DBI'
+
+curl -L https://cpanmin.us | perl - -M https://cpan.metacpan.org -n Mojolicious
+curl -L https://cpanmin.us | perl - --sudo App::cpanminus
+Plack::Handler::Apache2 - Apache 2.0 mod_perl handler
+
+#download OCSNG_UNIX_SERVER_2.4.1 and unzip it with 7-zip.Copy OCSNG_UNIX_SERVER_2.4.1 to you server. I use WinSCP to copy files and folders from Windows to linux
+#open  OCSNG_UNIX_SERVER_2.4.1
+cd OCSNG_UNIX_SERVER_2.4.1
+
+#Now installation begins
+sudo sh setup.sh
+#usually approve everything - install with default options.
+
+sudo a2enconf ocsinventory-reports
+sudo a2enconf z-ocsinventory-server
+
+#add access rights for www-data
+sudo chown -R www-data:www-data /var/lib/ocsinventory-reports/
+sudo service apache2 restart
+
+#Using WEB browser
+http://your_server_IP/ocsreports
+#Configure Mysql
+User:				root
+Pasword:			password defined when installed ubuntu with LAMP
+Name of datbase: 	ocsweb
+DatabaseHost:		localhost  
+#remove or rename install.php from /usr/share/ocsinventory-reports/ocsreports
+rm /usr/share/ocsinventory-reports/ocsreports/install.php
+
+mysql -u root -p
+#enter your mysql passward which you set when installed Server
+#My advice is to change default password for ocs
+SET PASSWORD FOR 'ocs'@'localhost' = PASSWORD('YourTopSecretPassword');
+SET PASSWORD FOR 'ocs'@'%' = PASSWORD('YourTopSecretPassword');
+GRANT ALL PRIVILEGES ON `ocsweb` .* TO 'ocs'@'localhost' IDENTIFIED BY 'YourTopSecretPassword' WITH GRANT OPTION;
+exit
+
+# as file explorer and file editor I like to use mc
+sudo apt install mc
+#oepen mc and Change default edtitor: Options>Config>UseInternalEditor>save 
+sudo mc 
+
+
+#Lets add wital information to apache2 and OCS configuration
+#(locate file and use F4 for edit, F2 for save file, F10 Close/Quit) }
+#edit /usr/share/ocsinventory-reports/ocsreports/dbconfig.inc.php and change password in line
+define("PSWD_BASE","YourTopSecretPassword");
+#edit etc/apache2/conf-available/
+#and edit z-ocsinventory-server.conf
+#change password in line
+PerlSetVar OCS_DB_PWD YourTopSecretPassword
+
+#Using WEB browser 
+http://your_server_IP/ocsreports
+# default credentials
+admin
+admin
+
+#Whan installing client add this line
+http://your_server_IP/ocsinventory
+
+
+#Bonuss Track- You dont need this to Run OCS
+#install phpmyadmin https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-phpmyadmin-on-ubuntu-16-04
+sudo apt-get update
+sudo apt-get install phpmyadmin php-mbstring php-gettext
+sudo phpenmod mcrypt
+sudo phpenmod mbstring
+sudo systemctl restart apache2
+http://your_server_IP/phpmyadmin
+
+#IF you want to Sync OCS with GLPI you myst enter IP of OCS server instead of loclahost in mysgl config in 
+#edit mysql config /etc/mysql/mysql.conf.d/mysql.conf
+#change bind address in line to
+bind-address<--><----->= YourserverIPadress
+
+!End of Instruction!
